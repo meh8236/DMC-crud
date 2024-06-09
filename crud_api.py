@@ -1,5 +1,5 @@
-from crud_db import DBSession, Bird, init_db
-from fastapi import Depends, FastAPI, HTTPException
+from crud_db import get_db, Bird, init_db
+from fastapi import Depends, FastAPI, HTTPException, status
 from pydantic import BaseModel, ConfigDict
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -24,12 +24,8 @@ class BirdResponse(BaseModel):
     name: str
 
 
-def get_db():
-    db = DBSession()
-    try:
-        yield db
-    finally:
-        db.close()
+class Message(BaseModel):
+    message: str
 
 
 @app.post("/birds/", response_model=BirdResponse)
@@ -52,7 +48,7 @@ def read_bird(bird_id: int, db: Session = Depends(get_db)):
     query = select(Bird).where(Bird.id == bird_id)
     found_bird = db.execute(query).scalar_one()
     if found_bird is None:
-        raise HTTPException(status_code=404, detail="Bird not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Bird not found")
     return found_bird
 
 
@@ -65,12 +61,12 @@ def update_bird(bird_id: int, bird: BirdUpdate, db: Session = Depends(get_db)):
     return found_bird
 
 
-@app.delete("/birds/{bird_id}", response_model=dict)
+@app.delete("/birds/{bird_id}", response_model=Message)
 def delete_bird(bird_id: int, db: Session = Depends(get_db)):
     found_bird = read_bird(bird_id, db)
     db.delete(found_bird)
     db.commit()
-    return {"message": "Bird deleted successfully"}
+    return Message(message='Bird deleted successfully')
 
 
 def main():
