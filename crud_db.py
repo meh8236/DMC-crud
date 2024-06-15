@@ -23,6 +23,7 @@ def init_db():
     Base.metadata.create_all(engine)
 
 
+
 def get_db():
     db = DBSession()
     try:
