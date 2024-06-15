@@ -68,6 +68,25 @@ def delete_bird(bird_id: int, db: Session = Depends(get_db)):
     db.commit()
     return Message(message='Bird deleted successfully')
 
+@app.put("/birds/{bird_1_id}/{bird_2_id}", response_model= Message)
+def switch_bird(
+        bird_1_id:int,
+        bird_2_id:int,
+        db: Session = Depends(get_db)):
+
+
+    b1 = read_bird(bird_1_id, db)
+    b1n=b1.name
+    b2 = read_bird(bird_2_id, db)
+    b2n=b2.name
+    temp_id=0
+
+    b1.name=b2n
+    b2.name=b1n
+
+    db.commit()
+    return Message(message='Birds switched successfully')
+
 
 def main():
     uvicorn.run(app)
